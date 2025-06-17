@@ -24,11 +24,13 @@ data "aws_vpc_endpoint_service" "this" {
 resource "aws_vpc_endpoint" "this" {
   for_each = local.endpoints
 
-  vpc_id            = var.vpc_id
-  service_name      = try(each.value.service_endpoint, data.aws_vpc_endpoint_service.this[each.key].service_name)
-  service_region    = try(each.value.service_region, null)
-  vpc_endpoint_type = try(each.value.service_type, "Interface")
-  auto_accept       = try(each.value.auto_accept, null)
+  vpc_id                     = var.vpc_id
+  resource_configuration_arn = try(each.value.resource_configuration_arn, null)
+  service_name               = try(each.value.service_endpoint, data.aws_vpc_endpoint_service.this[each.key].service_name)
+  service_network_arn        = try(each.value.service_network_arn, null)
+  service_region             = try(each.value.service_region, null)
+  vpc_endpoint_type          = try(each.value.service_type, "Interface")
+  auto_accept                = try(each.value.auto_accept, null)
 
   security_group_ids  = try(each.value.service_type, "Interface") == "Interface" ? length(distinct(concat(local.security_group_ids, lookup(each.value, "security_group_ids", [])))) > 0 ? distinct(concat(local.security_group_ids, lookup(each.value, "security_group_ids", []))) : null : null
   subnet_ids          = try(each.value.service_type, "Interface") == "Interface" ? distinct(concat(var.subnet_ids, lookup(each.value, "subnet_ids", []))) : null
